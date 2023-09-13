@@ -1,23 +1,10 @@
 from typing import *
-from dataclasses import dataclass
 import pygame
 import os
-import random
 
 ASSETS_DIR = "assets"
 WIDTH_PX = 1280
 HEIGHT_PX = 720
-
-
-@dataclass
-class Collection:
-    id: str
-    cards: List[str]
-
-    """Shuffle the collection in place."""
-
-    def shuffle(self):
-        random.shuffle(self.cards)
 
 
 class ViewController:
@@ -43,7 +30,7 @@ class ViewController:
     def get_available_cards(self) -> [str]:
         return list(self.assets.keys())
 
-    def render(self, piles: List[Collection], hands: List[Collection]):
+    def render(self, piles: List[str], hands: List[str]):
         """Renders the entire game based on the piles and hands"""
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
@@ -61,13 +48,13 @@ class ViewController:
         # flip() the display to put your work on screen
         pygame.display.flip()
 
-    def __draw_piles(self, piles: List[Collection]):
+    def __draw_piles(self, piles: List[str]):
         pile_index = 0
         for pile in piles:
-            if len(pile.cards) == 0:
+            if len(pile) == 0:
                 # todo: maybe render an empty indicator instead?
                 continue
-            card = self.assets[pile.cards[0]]
+            card = self.assets[pile[0]]
             SINGLE_CARD_HEIGHT = self.screen.get_height() / len(piles) - 20
             scale = SINGLE_CARD_HEIGHT / card.get_height()
             card = pygame.transform.scale(card, (
@@ -80,17 +67,17 @@ class ViewController:
             ))
             pile_index += 1
 
-    def __draw_hands(self, hands: List[Collection]):
+    def __draw_hands(self, hands: List[str]):
         hand_index = 0
         last_offsets = [0, 0]
         for hand in hands:
-            if len(hand.cards) == 0:
+            if len(hand) == 0:
                 # todo: maybe render an empty indicator instead?
                 continue
             card_index = 0
-            sample_card = self.assets[hand.cards[0]]
+            sample_card = self.assets[hand[0]]
             # proof: height = card_height + card_height * 25% * cards => height = card_height * ((25% * cards) + 1)
-            SINGLE_CARD_HEIGHT = self.screen.get_height() / (0.25 * len(hand.cards) + 1)
+            SINGLE_CARD_HEIGHT = self.screen.get_height() / (0.25 * len(hand) + 1)
             scale = SINGLE_CARD_HEIGHT / sample_card.get_height()
             MAX_WIDTH = 160
             actual_width = scale * sample_card.get_width()
@@ -100,7 +87,7 @@ class ViewController:
             left = hand_index % 2 == 0
             x_offset = 10 + last_offsets.pop(0)
             last_offsets.append(x_offset + actual_width)
-            for next_card in hand.cards:
+            for next_card in hand:
                 card = self.assets[next_card]
                 card = pygame.transform.scale(card, (
                     # this could be `scale * card.get_width()` but would lead to malformed cards
